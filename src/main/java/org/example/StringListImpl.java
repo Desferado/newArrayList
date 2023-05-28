@@ -1,17 +1,18 @@
 package org.example;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 public class StringListImpl implements StringList{
     public String item;
-    public int length ;
-    public int number = 0;
-    private String [] stringArray;
+    public int size;
+
+    private final String [] stringArray;
 
     public StringListImpl(int length){
-        this.length = length;
-        this.stringArray = new String[length];
+        stringArray = new String[length];
+    }
+    public StringListImpl(){
+        stringArray = new String[10];
     }
 
     @Override
@@ -23,81 +24,58 @@ public class StringListImpl implements StringList{
 
     @Override
     public String add(String item) {
-        if (item==null) {
-            throw new NullPointerException();
-        }
-        if(number == stringArray.length){
-          String [] stringArray2 = new String[stringArray.length*2];
-            System.arraycopy(stringArray, 0, stringArray2, 0, stringArray.length);
-            stringArray = stringArray2;
-        }
-        stringArray[number] = item;
-        number++;
+        validateItem(item);
+        validateLength();
+        stringArray[size++] = item;
          return item;
     }
 
     @Override
     public String add(int index, String item) {
-        if (item==null||index<0||index >= stringArray.length) {
-            throw new NullPointerException();
+        validateLength();
+        validateIndex(index);
+        validateItem(item);
+        if(index == size){
+            stringArray[size++] = item;
+            return item;
         }
-        for (int i = stringArray.length-1; i >= index; i--) {
-            String[] stringArray2 = new String[stringArray.length * 2];
-            System.arraycopy(stringArray, 0, stringArray2, 0, stringArray.length);
-            stringArray = stringArray2;
-            stringArray[i + 1] = stringArray[i];
-        }
-        stringArray[index] = item;
-        number++;
+        System.arraycopy(stringArray, index, stringArray, index+1, size-index);
+            stringArray[index] = item;
+            size++;
         return item;
     }
 
     @Override
     public String set(int index, String item) {
-        if (item==null||index<0||index >= stringArray.length) {
-            throw new NullPointerException();
-        }
-        if (index > stringArray.length-1){
-            throw new ArrayIndexOutOfBoundsException();
-        }
+        validateIndex(index);
+        validateItem(item);
         stringArray[index] = item;
         return item;
     }
 
     @Override
     public String remove(String item) {
-        if (item == null ||Arrays.stream(stringArray).noneMatch(i -> Objects.equals(i, item))) {
-            throw new NullPointerException();
+        validateItem(item);
+        int index = indexOf(item);
+        if (index == -1){
+            throw new ElementNotFoundException();
         }
-        if(Arrays.stream(stringArray).anyMatch(i -> Objects.equals(i, item))){
-            int num = 0;
-            for (int i = 0; i <= stringArray.length-1; i++) {
-                if(Objects.equals(stringArray[i], item)) {
-                    num = i;
-                    for (int j = num; j <= stringArray.length-2; j++) {
-                        stringArray[j] = stringArray[j + 1];
-                        if (j == stringArray.length) {
-                            stringArray[j] = null;
-                        }
-                    }
-                }
-            }
+        if (index!= size) {
+            System.arraycopy(stringArray, index + 1, stringArray, index, size - index);
         }
+        size--;
+
         return item;
     }
 
     @Override
     public String remove(int index) {
-        if (index < 0 ||stringArray[index] == null){
-            throw new NullPointerException();
+        validateIndex(index);
+        String item = stringArray[index];
+        if (index!= size) {
+            System.arraycopy(stringArray, index + 1, stringArray, index, size - index);
         }
-        item = stringArray[index];
-        for (int j = index; j <= stringArray.length-2; j++) {
-            stringArray[j] = stringArray[j + 1];
-            if (j == stringArray.length) {
-                stringArray[j] = null;
-            }
-        }
+        size--;
        return item;
     }
 
@@ -106,52 +84,34 @@ public class StringListImpl implements StringList{
         if (item==null) {
             throw new NullPointerException();
         }
-        return Arrays.stream(stringArray).anyMatch(i -> Objects.equals(i, item));
+        return indexOf(item) != -1;
     }
 
     @Override
     public int indexOf(String item) {
-        if (item == null) {
-            for (int i = 0; i < stringArray.length; i++) {
-                if (stringArray[i] == null) {
-                    return i;
-                }
-            }
-        } else {
-            for (int i = 0; i < stringArray.length; i++) {
-                if (item.equals(stringArray[i])) {
-                    return i;
-                }
+        validateItem(item);
+        for (int i = 0; i < size; i++) {
+            if (item.equals(stringArray[i])) {
+               return i;
             }
         }
-        return -1;
+    return -1;
     }
 
     @Override
     public int lastIndexOf(String item) {
-        int lastIndex = -1;
-        if (item == null) {
-            for (int i = 0; i < stringArray.length; i++) {
-                if (stringArray[i] == null) {
-                    lastIndex = i;
-                }
-            }
-            return lastIndex;
-        } else {
-            for (int i = 0; i < stringArray.length; i++) {
-                if (item.equals(stringArray[i])) {
-                    lastIndex = i;
-                }
+        validateItem(item);
+        for (int i = size -1; i >= 0; i--) {
+            if (item.equals(stringArray[i])) {
+                return i;
             }
         }
-        return lastIndex;
+    return -1;
     }
 
     @Override
     public String get(int index) {
-        if (index < 0){
-            throw new NullPointerException();
-        }
+        validateIndex(index);
         return stringArray[index];
     }
 
@@ -193,17 +153,13 @@ public class StringListImpl implements StringList{
 
     @Override
     public boolean isEmpty() {
-        for (int i = 0; i < stringArray.length-1; i++) {
-            if(stringArray[i] != null){
-                return false;
-            }
-        }
-        return true;
+
+        return size == 0;
     }
 
     @Override
     public void clear() {
-        Arrays.fill(stringArray, null);
+        size = 0;
     }
 
     @Override
@@ -211,6 +167,21 @@ public class StringListImpl implements StringList{
         String[] stringArray2 = new String[stringArray.length];
         System.arraycopy(stringArray, 0, stringArray2, 0, stringArray.length);
         return stringArray2;
+    }
+    private void validateItem(String item){
+        if(item==null){
+            throw new NullItemException();
+        }
+    }
+    private void validateLength(){
+        if(size == stringArray.length){
+            throw new StringArrayFullException();
+        }
+    }
+    private void validateIndex(int index){
+        if(index<0||index> size){
+            throw new InvalidIndexException();
+        }
     }
 }
 
