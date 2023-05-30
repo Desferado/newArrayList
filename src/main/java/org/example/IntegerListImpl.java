@@ -271,7 +271,7 @@ public class IntegerListImpl implements IntegerList{
         integerArray[index2] = temp;
     }
     private Integer [] grow(){
-       integerArray = new Integer[integerArray.length + integerArray.length / 2];
+       integerArray = Arrays.copyOf(integerArray, integerArray.length + integerArray.length / 2);
         return integerArray;
     }
 }
