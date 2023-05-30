@@ -7,7 +7,7 @@ public class IntegerListImpl implements IntegerList{
     public Integer item;
     public int size;
 
-    private final Integer [] integerArray;
+    private Integer [] integerArray;
 
     public IntegerListImpl(int length){
         integerArray = new Integer[length];
@@ -82,7 +82,8 @@ public class IntegerListImpl implements IntegerList{
     @Override
     public boolean contains(Integer item) {
         validateItem(item);
-        sortSelection(integerArray);
+//        sortSelection(integerArray);
+        quickSort(integerArray, 0, integerArray.length - 1);
         return contains(integerArray,item);
     }
     public static boolean contains (Integer [] arr, Integer element) {
@@ -193,7 +194,7 @@ public class IntegerListImpl implements IntegerList{
     }
     private void validateLength(){
         if(size == integerArray.length){
-            throw new IntegerArrayFullException();
+            grow();
         }
     }
     private void validateIndex(int index){
@@ -232,6 +233,30 @@ public class IntegerListImpl implements IntegerList{
             arr[j] = temp;
         }
     }
+    public static void quickSort(Integer[] arr, int begin, int end) {
+        if (begin < end) {
+            int partitionIndex = partition(arr, begin, end);
+
+            quickSort(arr, begin, partitionIndex - 1);
+            quickSort(arr, partitionIndex + 1, end);
+        }
+    }
+
+    private static int partition(Integer[] arr, int begin, int end) {
+        int pivot = arr[end];
+        int i = (begin - 1);
+
+        for (int j = begin; j < end; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+
+                swapElements(arr, i, j);
+            }
+        }
+
+        swapElements(arr, i + 1, end);
+        return i + 1;
+    }
     public static Integer [] generateRandomArray() {
         java.util.Random random = new java.util.Random();
         Integer[] arr = new Integer[100000];
@@ -244,5 +269,9 @@ public class IntegerListImpl implements IntegerList{
         Integer temp = integerArray[index1];
         integerArray[index1] = integerArray[index2];
         integerArray[index2] = temp;
+    }
+    private Integer [] grow(){
+       integerArray = new Integer[integerArray.length + integerArray.length / 2];
+        return integerArray;
     }
 }
